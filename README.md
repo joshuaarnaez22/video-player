@@ -1,36 +1,76 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Channel One — Live Broadcast Simulator
+
+A simulated live broadcast video channel built with Next.js. Users join a "channel" that's always playing — the server calculates which YouTube video and timestamp they should see based on elapsed time since a fixed broadcast start.
+
+## Approach
+
+### Core Concept
+
+The system treats a playlist of YouTube videos as an infinitely looping broadcast. A fixed start time (`2025-01-01T00:00:00Z`) serves as the "broadcast epoch." When any user loads the page:
+
+1. **Calculate elapsed time** — `now - broadcastStart` gives total seconds since launch
+2. **Modulo by total playlist duration** — `elapsed % totalDuration` gives position within the current loop cycle
+3. **Walk the playlist** — sum video durations to find which video is playing and at what offset
+
+This means every user sees the same content at the same time, regardless of when they open the page — just like tuning into a real TV channel.
+
+### Architecture
+
+```
+server.ts              → Custom HTTP server (Next.js + WebSocket on same port)
+src/lib/broadcast.ts   → Pure sync logic (getCurrentPosition)
+src/lib/playlist.ts    → Playlist data (video IDs + durations)
+src/app/api/broadcast/  → REST endpoint returning current position
+src/components/
+  Player.tsx           → YouTube IFrame API player
+  Chat.tsx             → WebSocket-powered live chat
+  ViewerCount.tsx      → Real-time viewer count
+```
+
+### Key Decisions
+
+- **YouTube IFrame API** — Videos are fully embedded from YouTube with ads, controls, and branding intact. No wrapper libraries.
+- **Custom server** — Next.js API routes don't support WebSockets, so a lightweight `server.ts` wraps Next.js and attaches a `ws` WebSocket server to the same HTTP server. No separate backend service needed.
+- **Pure sync functions** — The broadcast position calculation is a pure function with no side effects, making it testable and usable on both server (API) and client (Jump to Live).
+- **Infinite looping** — The playlist loops seamlessly using modulo arithmetic. The channel never stops.
+
+## Tech Stack
+
+- **Next.js 16** (App Router, TypeScript)
+- **YouTube IFrame API** (official embedded player)
+- **ws** (WebSocket server)
+- **Tailwind CSS** (styling)
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Start development server (custom server + Next.js) |
+| `npm run build` | Build Next.js for production |
+| `npm run start` | Start production server |
 
-## Learn More
+## Deployment
 
-To learn more about Next.js, take a look at the following resources:
+This app requires a long-running Node.js server (for WebSocket support), so it cannot be deployed to Vercel's serverless platform. Recommended platforms:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- **Railway**
+- **Render**
+- **Fly.io**
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Features
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Simulated live broadcast with time-synced playback
+- Automatic video advancement through playlist
+- "Jump to Live" button to re-sync with current broadcast position
+- Real-time chat via WebSocket
+- Live viewer count
+- Responsive layout (desktop sidebar chat, mobile stacked)
