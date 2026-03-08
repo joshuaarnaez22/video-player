@@ -6,7 +6,7 @@ export interface PlaylistItem {
 
 // ─── Test mode: short videos for testing transitions ───
 // Set to true to use short (<1 min) videos, false for production playlist
-const TEST_MODE = true;
+const TEST_MODE = false;
 
 const TEST_PLAYLIST: PlaylistItem[] = [
   {
