@@ -26,7 +26,7 @@ function generateUsername() {
 export default function Chat({ onViewerCount }: ChatProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
-  const [username] = useState(generateUsername);
+  const [username, setUsername] = useState("");
   const [connected, setConnected] = useState(false);
   const wsRef = useRef<WebSocket | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -34,6 +34,11 @@ export default function Chat({ onViewerCount }: ChatProps) {
   const reconnectTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   useEffect(() => {
+    setUsername(generateUsername());
+  }, []);
+
+  useEffect(() => {
+    if (!username) return;
     cleanupRef.current = false;
 
     function connect() {
