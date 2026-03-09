@@ -26,7 +26,7 @@ body {
   background: var(--bg-deep);
   color: var(--text-primary);
   font-family: var(--font-display);
-  min-height: 100vh;
+  min-height: 100dvh;
   overflow-x: hidden;
 }
 
@@ -35,8 +35,8 @@ body {
 .broadcast-layout {
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  max-height: 100vh;
+  height: 100dvh;
+  max-height: 100dvh;
   overflow: hidden;
 }
 
@@ -547,15 +547,52 @@ body {
 /* ─── Responsive ─── */
 
 @media (max-width: 768px) {
+  .broadcast-layout {
+    overflow-y: auto;
+    overflow-x: hidden;
+    height: 100dvh;
+  }
+
+  .broadcast-header {
+    padding: 8px 12px;
+  }
+
+  .channel-logo {
+    width: 28px;
+    height: 28px;
+    font-size: 11px;
+  }
+
+  .channel-name {
+    font-size: 12px;
+    letter-spacing: 1px;
+  }
+
+  .channel-tagline {
+    display: none;
+  }
+
   .broadcast-content {
     flex-direction: column;
+    flex: 1;
+    min-height: 0;
+  }
+
+  .broadcast-main {
+    flex: none;
   }
 
   .broadcast-sidebar {
     width: 100%;
     border-left: none;
     border-top: 1px solid var(--border-subtle);
-    height: 300px;
+    flex: 1;
+    min-height: 200px;
+  }
+
+  .player-header {
+    padding: 6px 12px;
+    gap: 10px;
   }
 
   .player-wrapper {
@@ -563,7 +600,47 @@ body {
     flex: none;
   }
 
+  .player-controls {
+    padding: 6px 12px;
+  }
+
+  .jump-to-live-btn {
+    padding: 4px 12px;
+    font-size: 11px;
+  }
+
+  .broadcast-info {
+    padding: 8px 12px;
+  }
+
   .info-grid {
     grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .info-value {
+    font-size: 11px;
+  }
+
+  .chat-header {
+    padding: 6px 12px;
+  }
+
+  .chat-messages {
+    padding: 8px 12px;
+  }
+
+  .chat-input-form {
+    padding: 8px 12px;
+  }
+
+  .chat-input {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+
+  .chat-send-btn {
+    padding: 6px 12px;
   }
 }
