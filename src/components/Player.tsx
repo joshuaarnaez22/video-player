@@ -22,30 +22,46 @@ export default function Player({ onPositionUpdate }: PlayerProps) {
   const [currentTitle, setCurrentTitle] = useState("");
   const currentVideoIdRef = useRef<string>("");
   const loadingRef = useRef(false);
+  const slotTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const playStartTimeRef = useRef<number>(0);
 
-  const fetchAndSeek = useCallback(async () => {
+  const fetchAndSeek = useCallback(async (force = false) => {
     if (loadingRef.current) return;
     loadingRef.current = true;
+
+    // Clear any existing slot timer
+    clearTimeout(slotTimerRef.current);
 
     try {
       const res = await fetch("/api/broadcast");
       const data = await res.json();
-      const { current } = data;
+      const { current, playlist } = data;
 
       setCurrentTitle(current.title);
       onPositionUpdate?.(current);
 
       if (playerRef.current) {
-        if (currentVideoIdRef.current === current.videoId) {
+        if (!force && currentVideoIdRef.current === current.videoId) {
           // Same video — just seek, don't reload
           playerRef.current.seekTo(current.offsetSeconds, true);
         } else {
           // Different video — load it
           currentVideoIdRef.current = current.videoId;
+          playStartTimeRef.current = Date.now();
           playerRef.current.loadVideoById({
             videoId: current.videoId,
             startSeconds: current.offsetSeconds,
           });
+        }
+
+        // Set a timer to advance when this video's slot runs out
+        const currentItem = playlist[current.videoIndex];
+        const remainingInSlot = currentItem.duration - current.offsetSeconds;
+        if (remainingInSlot > 0) {
+          slotTimerRef.current = setTimeout(() => {
+            currentVideoIdRef.current = "";
+            fetchAndSeek(true);
+          }, remainingInSlot * 1000);
         }
       }
     } finally {
@@ -86,9 +102,14 @@ export default function Player({ onPositionUpdate }: PlayerProps) {
           },
           onStateChange: (event: YT.OnStateChangeEvent) => {
             if (event.data === window.YT.PlayerState.ENDED) {
-              // Video ended — advance to next, reset current so it forces a load
-              currentVideoIdRef.current = "";
-              fetchAndSeek();
+              // Only advance if the video played for at least 5 seconds
+              // (ignores spurious ENDED from ads, embed restrictions, etc.)
+              const playedMs = Date.now() - playStartTimeRef.current;
+              if (playedMs > 5000) {
+                clearTimeout(slotTimerRef.current);
+                currentVideoIdRef.current = "";
+                fetchAndSeek(true);
+              }
             }
           },
         },
@@ -102,6 +123,7 @@ export default function Player({ onPositionUpdate }: PlayerProps) {
     }
 
     return () => {
+      clearTimeout(slotTimerRef.current);
       if (playerRef.current) {
         playerRef.current.destroy();
         playerRef.current = null;

@@ -12,17 +12,17 @@ const TEST_PLAYLIST: PlaylistItem[] = [
   {
     videoId: "jNQXAC9IVRw",
     title: "Me at the zoo",
-    duration: 19,
+    duration: 19, // actual: 0:19
   },
   {
     videoId: "dQw4w9WgXcQ",
     title: "Rick Astley - Never Gonna Give You Up",
-    duration: 32, // we'll cut it short for testing
+    duration: 212, // actual: 3:32
   },
   {
     videoId: "9bZkp7q19f0",
     title: "PSY - GANGNAM STYLE",
-    duration: 28,
+    duration: 253, // actual: 4:13
   },
 ];
 
